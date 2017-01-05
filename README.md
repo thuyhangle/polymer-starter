@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ![](https://cloud.githubusercontent.com/assets/110953/7877439/6a69d03e-0590-11e5-9fac-c614246606de.png)
 ## Polymer Starter Kit
 
@@ -388,3 +389,7 @@ Like other Google projects, Polymer Starter Kit includes Google license headers 
 ## Contributing
 
 Polymer Starter Kit is a new project and is an ongoing effort by the Web Component community. We welcome your bug reports, PRs for improvements, docs and anything you think would improve the experience for other Polymer developers.
+=======
+# polymer-starter
+first try to use polymer JS framework
+>>>>>>> 3e6da3c6a042e073ae093db9987e7ac9016ed34f
