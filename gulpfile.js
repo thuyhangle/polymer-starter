@@ -156,6 +156,7 @@ gulp.task('fonts', function() {
 
 // Scan your HTML for assets & optimize them
 gulp.task('html', function() {
+  var assets = $.useref.assets({searchPath: ['.tmp', 'dist']}); // Removed 'app' here!
   return optimizeHtmlTask(
     ['app/**/*.html', '!app/{elements,test,bower_components}/**/*.html'],
     dist());
@@ -214,7 +215,7 @@ gulp.task('clean', function() {
 });
 
 // Watch files for changes & reload
-gulp.task('serve', ['styles'], function() {
+gulp.task('serve', ['styles', 'js'], function() {
   browserSync({
     port: 5000,
     notify: false,
@@ -237,9 +238,9 @@ gulp.task('serve', ['styles'], function() {
     }
   });
 
-  gulp.watch(['app/**/*.html', '!app/bower_components/**/*.html'], reload);
+  gulp.watch(['app/**/*.html', '!app/bower_components/**/*.html'], ['js', reload]); // Added 'js' here!
   gulp.watch(['app/styles/**/*.css'], ['styles', reload]);
-  gulp.watch(['app/scripts/**/*.js'], reload);
+  gulp.watch(['app/scripts/**/*.js'], ['js', reload]); // Added 'js' here!
   gulp.watch(['app/images/**/*'], reload);
 });
 
@@ -335,18 +336,19 @@ gulp.task('vulcanize', function() {
 // Copy all files at the root level (app)
 gulp.task('copy', function() {
 
-  var app = gulp.src([
-    'app/*',
-    '!app/bower_components',
-    '!app/elements',
-    '!app/test',
-    '!app/cache-config.json'
-    ])
-    .pipe(gulp.dest(dist()));
+  // var app = gulp.src([
+  //   'app/*',
+  //   '!app/bower_components',
+  //   '!app/elements',
+  //   '!app/test',
+  //   '!app/cache-config.json'
+  //   ], {
+  //     dot: true
+  //   }).pipe(gulp.dest(dist()));
 
-  var bower = gulp.src([
-    'app/bower_components/{webcomponentsjs,platinum-sw,sw-toolbox,promise-polyfill}/**/*'
-  ]).pipe(gulp.dest(dist('bower_components')));
+  // var bower = gulp.src([
+  //   'app/bower_components/{webcomponentsjs,platinum-sw,sw-toolbox,promise-polyfill}/**/*'
+  // ]).pipe(gulp.dest(dist('bower_components')));
 
 
   // Add components to .tmp dir so they can get concatenated
@@ -361,17 +363,6 @@ gulp.task('copy', function() {
 
 });
 
-//Make sure the js task is triggered initially and on HTML and JS files changes:
-gulp.task('serve', ['styles', 'js'], function () { // Added 'js' here!
-
-  // ...
-
-  gulp.watch(['app/**/*.html', '!app/bower_components/**/*.html'], ['js', reload]); // Added 'js' here!
-  gulp.watch(['app/styles/**/*.css'], ['styles', reload]);
-  gulp.watch(['app/scripts/**/*.js'], ['js', reload]); // Added 'js' here!
-  gulp.watch(['app/images/**/*'], reload);
-});
-
 //make sure js is run in parallel to images, fonts, and html tasks:
 gulp.task('default', ['clean'], function (cb) {
   // Uncomment 'cache-config' if you are going to use service workers.
@@ -382,10 +373,4 @@ gulp.task('default', ['clean'], function (cb) {
     cb);
 });
 
-// Scan Your HTML For Assets & Optimize Them
-gulp.task('html', function () {
-  var assets = $.useref.assets({searchPath: ['.tmp', 'dist']}); // Removed 'app' here!
 
-  // ...
-
-});
