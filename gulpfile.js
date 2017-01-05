@@ -306,3 +306,86 @@ try {
 } catch (err) {
   // Do nothing
 }
+
+// Transpile all JS to ES5.
+gulp.task('js', function () {
+ return gulp.src(['app/**/*.{js,html}', '!app/bower_components/**/*'])
+   .pipe($.if('*.html', $.crisper({scriptInHead:false}))) // Extract JS from .html files
+   .pipe($.sourcemaps.init())
+   .pipe($.if('*.js', $.babel({
+     presets: ['es2015']
+   })))
+   .pipe($.sourcemaps.write())
+   .pipe(gulp.dest('.tmp/'))
+   .pipe(gulp.dest('dist/'));
+});
+
+// Vulcanize granular configuration
+gulp.task('vulcanize', function() {
+  return gulp.src('.tmp/elements/elements.html') // look in .tmp dir!
+    .pipe($.vulcanize({
+      stripComments: true,
+      inlineCss: true,
+      inlineScripts: true
+    }))
+    .pipe(gulp.dest(dist('elements')))
+    .pipe($.size({title: 'vulcanize'}));
+});
+
+// Copy all files at the root level (app)
+gulp.task('copy', function() {
+
+  var app = gulp.src([
+    'app/*',
+    '!app/bower_components',
+    '!app/elements',
+    '!app/test',
+    '!app/cache-config.json'
+    ])
+    .pipe(gulp.dest(dist()));
+
+  var bower = gulp.src([
+    'app/bower_components/{webcomponentsjs,platinum-sw,sw-toolbox,promise-polyfill}/**/*'
+  ]).pipe(gulp.dest(dist('bower_components')));
+
+
+  // Add components to .tmp dir so they can get concatenated
+  // when we vulcanize
+  var tmp = gulp.src(['app/bower_components/**/*'])
+    .pipe(gulp.dest('.tmp/bower_components'));
+
+  return merge(app, bower, tmp)
+    .pipe($.size({
+      title: 'copy'
+    }));
+
+});
+
+//Make sure the js task is triggered initially and on HTML and JS files changes:
+gulp.task('serve', ['styles', 'js'], function () { // Added 'js' here!
+
+  // ...
+
+  gulp.watch(['app/**/*.html', '!app/bower_components/**/*.html'], ['js', reload]); // Added 'js' here!
+  gulp.watch(['app/styles/**/*.css'], ['styles', reload]);
+  gulp.watch(['app/scripts/**/*.js'], ['js', reload]); // Added 'js' here!
+  gulp.watch(['app/images/**/*'], reload);
+});
+
+//make sure js is run in parallel to images, fonts, and html tasks:
+gulp.task('default', ['clean'], function (cb) {
+  // Uncomment 'cache-config' if you are going to use service workers.
+  runSequence(
+    ['ensureFiles', 'copy', 'styles'],
+    ['images', 'fonts', 'html', 'js'],
+    'vulcanize', // 'cache-config',
+    cb);
+});
+
+// Scan Your HTML For Assets & Optimize Them
+gulp.task('html', function () {
+  var assets = $.useref.assets({searchPath: ['.tmp', 'dist']}); // Removed 'app' here!
+
+  // ...
+
+});
